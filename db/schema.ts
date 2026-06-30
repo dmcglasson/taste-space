@@ -1,30 +1,126 @@
-import { pgTable, uuid, varchar, text, boolean, integer, jsonb, timestamp } from 'drizzle-orm/pg-core';
+import { relations } from "drizzle-orm";
+import { pgTable, uuid, varchar, text, boolean, unique, jsonb, timestamp, index } from 'drizzle-orm/pg-core';
 
-// Users Table
-export const users = pgTable('users', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  username: varchar('username', { length: 50 }).notNull().unique(),
-  email: varchar('email', { length: 255 }).notNull().unique(),
-  passwordHash: varchar('password_hash', { length: 255 }).notNull(),
-  bio: text('bio'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+// User Table
+export const user = pgTable(
+  "user", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  username: varchar("username", { length: 50 }).notNull().unique(),
+  bio: text("bio"),
+  emailVerified: boolean("email_verified").default(false).notNull(),
+  image: text("image"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
 });
+
+export const session = pgTable(
+  "session",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    expiresAt: timestamp("expires_at").notNull(),
+    token: text("token").notNull().unique(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+  },
+  (table) => [index("session_userId_idx").on(table.userId)],
+);
+
+export const account = pgTable(
+  "account",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    accountId: text("account_id").notNull(),
+    providerId: text("provider_id").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    accessToken: text("access_token"),
+    refreshToken: text("refresh_token"),
+    idToken: text("id_token"),
+    accessTokenExpiresAt: timestamp("access_token_expires_at"),
+    refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+    scope: text("scope"),
+    password: varchar("password", { length: 255 }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("account_userId_idx").on(table.userId),
+    unique("provider_account_id").on(table.providerId, table.accountId),
+  ],
+);
+
+export const verification = pgTable(
+  "verification",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    identifier: text("identifier").notNull(),
+    value: text("value").notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [index("verification_identifier_idx").on(table.identifier)],
+);
+
+export const userRelations = relations(user, ({ many }) => ({
+  sessions: many(session),
+  accounts: many(account),
+}));
+
+export const sessionRelations = relations(session, ({ one }) => ({
+  user: one(user, {
+    fields: [session.userId],
+    references: [user.id],
+  }),
+}));
+
+export const accountRelations = relations(account, ({ one }) => ({
+  user: one(user, {
+    fields: [account.userId],
+    references: [user.id],
+  }),
+}));
 
 // Recipes Table
-export const recipes = pgTable('recipes', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  title: varchar('title', { length: 255 }).notNull(),
-  description: text('description'),
-  
-  // Structured JSONB Array to prevent future destructive refactoring
-  // Format: Array of { amount: number, unit: string, name: string }
-  ingredients: jsonb('ingredients').$type<{ amount: number; unit: string; name: string }[]>().notNull(),
-  
-  instructions: text('instructions').array().notNull(), // Step-by-step array
-  isPublic: boolean('is_public').default(true).notNull(), // Privacy toggle
-  
-  // Relational Foreign Key back to the User who created it
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
-  
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+export const recipes = pgTable(
+  'recipes',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    title: varchar('title', { length: 255 }).notNull(),
+    description: text('description'),
+
+    // Structured JSONB Array to prevent future destructive refactoring
+    // Format: Array of { amount: number, unit: string, name: string }
+    ingredients: jsonb('ingredients').$type<{ amount: number; unit: string; name: string }[]>().notNull(),
+
+    instructions: text('instructions').array().notNull(), // Step-by-step array
+    isPublic: boolean('is_public').default(true).notNull(), // Privacy toggle
+
+    // Relational Foreign Key back to the User who created it
+    userId: uuid('user_id').references(() => user.id, { onDelete: 'cascade' }).notNull(),
+
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index("recipes_userId_idx").on(table.userId),
+    index("recipes_isPublic_idx").on(table.isPublic),
+  ],
+);
