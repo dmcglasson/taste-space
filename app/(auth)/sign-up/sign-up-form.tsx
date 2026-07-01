@@ -3,6 +3,10 @@
 import { useActionState } from "react"
 import { useRouter } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 type FormState = {
   error: string | null;
@@ -81,69 +85,39 @@ export default function SignUpForm() {
   );
 
   return (
-    <form action={formAction} className="space-y-6">
-      <div>
-        <label className="block text-sm font-medium leading-6 text-gray-900">Name</label>
-        <input
-          name="name"
-          type="text"
-          required
-          defaultValue={state.name}
-          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium leading-6 text-gray-900">Email address</label>
-        <input
-          name="email"
-          type="email"
-          required
-          defaultValue={state.email}
-          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium leading-6 text-gray-900">Username</label>
-        <input
-          name="username"
-          type="text"
-          required
-          defaultValue={state.username}
-          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium leading-6 text-gray-900">Password</label>
-        <input
-          name="password"
-          type="password"
-          required
-          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium leading-6 text-gray-900">Confirm Password</label>
-        <input
-          name="confirmPassword"
-          type="password"
-          required
-          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600"
-        />
-      </div>
+    <form action={formAction}>
+      <FieldGroup>
+        <Field>
+          <FieldLabel htmlFor="name">Name</FieldLabel>
+          <Input id="name" name="name" type="text" defaultValue={state.name} placeholder="Dana Cortez" required />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="email">Email address</FieldLabel>
+          <Input id="email" name="email" type="email" defaultValue={state.email} placeholder="you@example.com" required />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="username">Username</FieldLabel>
+          <Input id="username" name="username" type="text" defaultValue={state.username} placeholder="danacooks" required />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="password">Password</FieldLabel>
+          <Input id="password" name="password" type="password" placeholder="At least 8 characters" required />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="confirmPassword">Confirm password</FieldLabel>
+          <Input id="confirmPassword" name="confirmPassword" type="password" placeholder="••••••••" required />
+        </Field>
 
-      {state.error && (
-        <div className="text-sm text-red-600">{state.error}</div>
-      )}
+        {state.error && (
+          <Alert variant="destructive">
+            <AlertDescription>{state.error}</AlertDescription>
+          </Alert>
+        )}
 
-      <div>
-        <button
-          type="submit"
-          disabled={isPending}
-          className="flex w-full justify-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-50"
-        >
-          {isPending ? "Creating account..." : "Sign Up"}
-        </button>
-      </div>
+        <Button type="submit" disabled={isPending} className="w-full">
+          {isPending ? "Creating account..." : "Create account"}
+        </Button>
+      </FieldGroup>
     </form>
   );
 }

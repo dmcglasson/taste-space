@@ -3,6 +3,10 @@
 import { useActionState } from "react"
 import { useRouter } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 type FormState = {
   error: string | null;
@@ -46,37 +50,27 @@ export default function SignInForm() {
   );
 
   return (
-    <form action={formAction} className="space-y-6">
-      <div>
-        <label className="block text-sm font-medium leading-6 text-gray-900">Email address</label>
-        <input
-          name="email"
-          type="email"
-          required
-          className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium leading-6 text-gray-900">Password</label>
-        <input
-          name="password"
-          type="password"
-          required
-          className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-        />
-      </div>
+    <form action={formAction}>
+      <FieldGroup>
+        <Field>
+          <FieldLabel htmlFor="email">Email address</FieldLabel>
+          <Input id="email" name="email" type="email" placeholder="you@example.com" required />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="password">Password</FieldLabel>
+          <Input id="password" name="password" type="password" placeholder="••••••••" required />
+        </Field>
 
-      {state.error && (
-        <p className="text-sm text-red-600">{state.error}</p>
-      )}
+        {state.error && (
+          <Alert variant="destructive">
+            <AlertDescription>{state.error}</AlertDescription>
+          </Alert>
+        )}
 
-      <button
-        type="submit"
-        disabled={isPending}
-        className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-      >
-        {isPending ? "Checking credentials..." : "Sign in"}
-      </button>
+        <Button type="submit" disabled={isPending} className="w-full">
+          {isPending ? "Checking credentials..." : "Sign in"}
+        </Button>
+      </FieldGroup>
     </form>
   );
 }
